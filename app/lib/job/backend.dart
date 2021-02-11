@@ -184,6 +184,7 @@ class JobBackend {
       ..order('priority')
       ..limit(100);
     final list = await query.run().toList();
+    _logger.info('Query returned ${list.length}');
 
     bool isApplicable(Job job) {
       if (job == null) return false;
@@ -331,6 +332,8 @@ class JobBackend {
 
   Future<Map> stats(JobService service) async {
     final _AllStats stats = _AllStats();
+    _logger.info('Collecting stats...');
+    final sw = Stopwatch()..start();
 
     final query = _db.query<Job>()
       ..filter('runtimeVersion =', versions.runtimeVersion)
@@ -338,6 +341,7 @@ class JobBackend {
     await for (Job job in query.run()) {
       stats.add(job);
     }
+    _logger.info('Collecting stats/totalCount: ${stats.all.totalCount}');
 
     final List<_AllStats> list = _lastStats.putIfAbsent(service, () => []);
     stats.updateEstimates(list.isEmpty ? null : list.first);
@@ -348,6 +352,7 @@ class JobBackend {
     }
     list.add(stats);
 
+    _logger.info('Collecting stats completed in ${sw.elapsed}');
     return stats.toMap();
   }
 

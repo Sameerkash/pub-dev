@@ -50,11 +50,13 @@ abstract class JobProcessor {
   Future<void> run() async {
     int sleepSeconds = 0;
     for (;;) {
+      _logger.info('Query for job...');
       final status = await _runOneJob();
       if (_aliveCallback != null) await _aliveCallback();
       final wasProcessing =
           status == JobStatus.success || status == JobStatus.skipped;
       sleepSeconds = wasProcessing ? 0 : math.min(sleepSeconds + 1, 60);
+      _logger.info('Sleeping for $sleepSeconds');
       await Future.delayed(Duration(seconds: sleepSeconds));
     }
   }
