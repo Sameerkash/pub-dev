@@ -134,6 +134,8 @@ Future<_ToolEnvRef> _createToolEnvRef() async {
   _logger.info('Creating new tool env');
   final cacheDir = await _toolEnvTempDir.createTemp('pub-cache-dir');
   final resolvedDirName = await cacheDir.resolveSymbolicLinks();
+  await _delete('${envConfig.stableFlutterSdkDir}/.git');
+  await _delete('${envConfig.previewFlutterSdkDir}/.git');
   final stableToolEnv = await ToolEnvironment.create(
     dartSdkDir: envConfig.stableDartSdkDir,
     flutterSdkDir: envConfig.stableFlutterSdkDir,
@@ -153,6 +155,13 @@ Future<_ToolEnvRef> _createToolEnvRef() async {
   final ref = _ToolEnvRef(cacheDir, stableToolEnv, previewToolEnv);
   await ref._reportSizes();
   return ref;
+}
+
+Future<void> _delete(String path) async {
+  final dir = Directory(path);
+  if (dir.existsSync()) {
+    await dir.delete(recursive: true);
+  }
 }
 
 Future<int> _calcDirectorySize(Directory dir) async {
